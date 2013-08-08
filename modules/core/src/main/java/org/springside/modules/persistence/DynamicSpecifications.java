@@ -1,6 +1,9 @@
 package org.springside.modules.persistence;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -11,6 +14,7 @@ import javax.persistence.criteria.Root;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
+import org.springside.modules.persistence.SearchFilter.Operator;
 import org.springside.modules.utils.Collections3;
 
 import com.google.common.collect.Lists;
@@ -31,7 +35,16 @@ public class DynamicSpecifications {
 						for (int i = 1; i < names.length; i++) {
 							expression = expression.get(names[i]);
 						}
-
+						Date start = null;
+						if (filter.operator == Operator.AFTER) {
+							try {
+								SimpleDateFormat sdf = new SimpleDateFormat(
+										"yyyy-MM-dd hh:MM:ss");
+								System.out.println((String) filter.value);
+								start = sdf.parse((String) filter.value);
+							} catch (ParseException e) {
+							}
+						}
 						// logic operator
 						switch (filter.operator) {
 						case EQ:
@@ -51,6 +64,9 @@ public class DynamicSpecifications {
 							break;
 						case LTE:
 							predicates.add(builder.lessThanOrEqualTo(expression, (Comparable) filter.value));
+							break;
+						case AFTER:
+							predicates.add(builder.greaterThan((Path<Date>)expression, start));
 							break;
 						}
 					}

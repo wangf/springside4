@@ -1,4 +1,5 @@
 @echo off
+d:\env.bat
 echo [INFO] Install jar to local repository.
 
 cd %~dp0
