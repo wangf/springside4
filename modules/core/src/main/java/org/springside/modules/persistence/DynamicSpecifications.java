@@ -65,11 +65,26 @@ public class DynamicSpecifications {
 						case LTE:
 							predicates.add(builder.lessThanOrEqualTo(expression, (Comparable) filter.value));
 							break;
-						case AFT:
+						case MMAFT:
 							predicates.add(builder.greaterThan((Path<Date>)expression, new Date(Long.valueOf((String) filter.value))));
 							break;
-						case BFR:
+						case MMBFR:
 							predicates.add(builder.lessThan((Path<Date>)expression, new Date(Long.valueOf((String) filter.value))));
+							break;
+						case AFT:
+							try {
+								predicates.add(builder.greaterThan((Path<Date>)expression, new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse((String) filter.value)));
+							} catch (ParseException e) {
+								e.printStackTrace();
+							}
+							break;
+						case BFR:
+							try {
+								predicates.add(builder.lessThan((Path<Date>)expression,new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse((String) filter.value)));
+							} catch (ParseException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 							break;
 						}
 					}
