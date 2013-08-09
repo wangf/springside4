@@ -35,16 +35,16 @@ public class DynamicSpecifications {
 						for (int i = 1; i < names.length; i++) {
 							expression = expression.get(names[i]);
 						}
-						Date start = null;
-						if (filter.operator == Operator.AFTER) {
-							try {
-								SimpleDateFormat sdf = new SimpleDateFormat(
-										"yyyy-MM-dd hh:MM:ss");
-								System.out.println((String) filter.value);
-								start = sdf.parse((String) filter.value);
-							} catch (ParseException e) {
-							}
-						}
+//						Date start = null;
+//						if (filter.operator == Operator.AFT) {
+//							try {
+//								SimpleDateFormat sdf = new SimpleDateFormat(
+//										"yyyy-MM-dd hh:MM:ss");
+//								System.out.println((String) filter.value);
+//								start = sdf.parse((String) filter.value);
+//							} catch (ParseException e) {
+//							}
+//						}
 						// logic operator
 						switch (filter.operator) {
 						case EQ:
@@ -65,8 +65,11 @@ public class DynamicSpecifications {
 						case LTE:
 							predicates.add(builder.lessThanOrEqualTo(expression, (Comparable) filter.value));
 							break;
-						case AFTER:
-							predicates.add(builder.greaterThan((Path<Date>)expression, start));
+						case AFT:
+							predicates.add(builder.greaterThan((Path<Date>)expression, new Date(Long.valueOf((String) filter.value))));
+							break;
+						case BFR:
+							predicates.add(builder.lessThan((Path<Date>)expression, new Date(Long.valueOf((String) filter.value))));
 							break;
 						}
 					}

@@ -153,7 +153,9 @@ public class Servlets {
 				} else if (values.length > 1) {
 					params.put(unprefixed, values);
 				} else {
-					params.put(unprefixed, values[0]);
+					if(!values[0].trim().equals("")){
+						params.put(unprefixed, values[0]);
+					}
 				}
 			}
 		}

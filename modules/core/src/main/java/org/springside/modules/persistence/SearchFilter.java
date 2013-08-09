@@ -10,7 +10,7 @@ import com.google.common.collect.Maps;
 public class SearchFilter {
 
 	public enum Operator {
-		EQ, LIKE, GT, LT, GTE, LTE, AFTER
+		EQ, LIKE, GT, LT, GTE, LTE, AFT, BFR
 	}
 
 	public String fieldName;
