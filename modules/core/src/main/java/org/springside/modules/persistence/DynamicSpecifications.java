@@ -1,6 +1,9 @@
 package org.springside.modules.persistence;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -51,6 +54,26 @@ public class DynamicSpecifications {
 							break;
 						case LTE:
 							predicates.add(builder.lessThanOrEqualTo(expression, (Comparable) filter.value));
+							break;
+						case MMAFT:
+							predicates.add(builder.greaterThan((Path<Date>)expression, new Date(Long.valueOf((String) filter.value))));
+							break;
+						case MMBFR:
+							predicates.add(builder.lessThan((Path<Date>)expression, new Date(Long.valueOf((String) filter.value))));
+							break;
+						case AFT:
+							try {
+								predicates.add(builder.greaterThan((Path<Date>)expression, new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse((String) filter.value)));
+							} catch (ParseException e) {
+								// calvin, 这里咋处理？我认为，加不上这个条件就拉倒了，
+							}
+							break;
+						case BFR:
+							try {
+								predicates.add(builder.lessThan((Path<Date>)expression,new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse((String) filter.value)));
+							} catch (ParseException e) {
+								// calvin, 这里咋处理？我认为，加不上这个条件就拉倒了，
+							}
 							break;
 						}
 					}
