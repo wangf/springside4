@@ -14,6 +14,7 @@ import javax.persistence.criteria.Root;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
+import org.springside.modules.persistence.SearchFilter.Operator;
 import org.springside.modules.utils.Collections3;
 
 import com.google.common.collect.Lists;
