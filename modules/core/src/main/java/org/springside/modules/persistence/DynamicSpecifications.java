@@ -35,16 +35,7 @@ public class DynamicSpecifications {
 						for (int i = 1; i < names.length; i++) {
 							expression = expression.get(names[i]);
 						}
-//						Date start = null;
-//						if (filter.operator == Operator.AFT) {
-//							try {
-//								SimpleDateFormat sdf = new SimpleDateFormat(
-//										"yyyy-MM-dd hh:MM:ss");
-//								System.out.println((String) filter.value);
-//								start = sdf.parse((String) filter.value);
-//							} catch (ParseException e) {
-//							}
-//						}
+
 						// logic operator
 						switch (filter.operator) {
 						case EQ:
@@ -75,15 +66,14 @@ public class DynamicSpecifications {
 							try {
 								predicates.add(builder.greaterThan((Path<Date>)expression, new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse((String) filter.value)));
 							} catch (ParseException e) {
-								e.printStackTrace();
+								// calvin, 这里咋处理？我认为，加不上这个条件就拉倒了，
 							}
 							break;
 						case BFR:
 							try {
 								predicates.add(builder.lessThan((Path<Date>)expression,new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse((String) filter.value)));
 							} catch (ParseException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
+								// calvin, 这里咋处理？我认为，加不上这个条件就拉倒了，
 							}
 							break;
 						}
