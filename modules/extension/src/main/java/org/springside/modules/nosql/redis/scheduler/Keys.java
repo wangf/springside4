@@ -2,15 +2,23 @@ package org.springside.modules.nosql.redis.scheduler;
 
 public class Keys {
 
-	public static String getSleepingJobKey(String jobName) {
-		return new StringBuilder().append("job:").append(jobName).append(":sleepingjob").toString();
+	public static String getScheduledJobKey(String jobName) {
+		return new StringBuilder().append("job:").append(jobName).append(":scheduled").toString();
 	}
 
 	public static String getReadyJobKey(String jobName) {
-		return new StringBuilder().append("job:").append(jobName).append(":readyjob").toString();
+		return new StringBuilder().append("job:").append(jobName).append(":ready").toString();
+	}
+
+	public static String getLockJobKey(String jobName) {
+		return new StringBuilder().append("job:").append(jobName).append(":lock").toString();
 	}
 
 	public static String getDispatchCounterKey(String jobName) {
-		return new StringBuilder().append("job:").append(jobName).append(":counter").toString();
+		return new StringBuilder().append("job:").append(jobName).append(":dispatch.counter").toString();
+	}
+
+	public static String getRetryCounterKey(String jobName) {
+		return new StringBuilder().append("job:").append(jobName).append(":retry.counter").toString();
 	}
 }

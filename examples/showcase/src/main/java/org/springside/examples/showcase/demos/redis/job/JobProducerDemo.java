@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.springside.examples.showcase.demos.redis.JedisPoolFactory;
 import org.springside.modules.nosql.redis.JedisUtils;
-import org.springside.modules.nosql.redis.scheduler.JobManager;
+import org.springside.modules.nosql.redis.scheduler.JobProducer;
 import org.springside.modules.test.benchmark.BenchmarkTask;
 import org.springside.modules.test.benchmark.ConcurrentBenchmark;
 
@@ -23,12 +23,12 @@ public class JobProducerDemo extends ConcurrentBenchmark {
 	private static final long DEFAULT_LOOP_COUNT = 100000;
 
 	private static AtomicLong expiredMills = new AtomicLong(System.currentTimeMillis()
-			+ (JobDispatcherDemo.DELAY_SECONDS * 1000));
+			+ (SimpleJobDispatcherDemo.DELAY_SECONDS * 1000));
 	private static AtomicLong idGenerator = new AtomicLong(0);
 
 	private long expectTps;
 	private JedisPool pool;
-	private JobManager jobManager;
+	private JobProducer jobProducer;
 
 	public static void main(String[] args) throws Exception {
 		JobProducerDemo benchmark = new JobProducerDemo();
@@ -38,14 +38,14 @@ public class JobProducerDemo extends ConcurrentBenchmark {
 	public JobProducerDemo() {
 		super(DEFAULT_THREAD_COUNT, DEFAULT_LOOP_COUNT);
 		this.expectTps = Long.parseLong(System.getProperty("benchmark.tps",
-				String.valueOf(JobDispatcherDemo.EXPECT_TPS)));
+				String.valueOf(SimpleJobDispatcherDemo.EXPECT_TPS)));
 	}
 
 	@Override
 	protected void setUp() {
 		pool = JedisPoolFactory.createJedisPool(JedisUtils.DEFAULT_HOST, JedisUtils.DEFAULT_PORT,
 				JedisUtils.DEFAULT_TIMEOUT, threadCount);
-		jobManager = new JobManager("ss", pool);
+		jobProducer = new JobProducer("ss", pool);
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class JobProducerDemo extends ConcurrentBenchmark {
 		@Override
 		public void execute(final int requestSequence) {
 			long jobId = idGenerator.getAndIncrement();
-			jobManager.scheduleJob("job:" + jobId, expiredMills.get() - System.currentTimeMillis(),
+			jobProducer.schedule("job:" + jobId, expiredMills.get() - System.currentTimeMillis(),
 					TimeUnit.MILLISECONDS);
 
 			// 达到期望的每秒的TPS后，expireTime往后滚动一秒
