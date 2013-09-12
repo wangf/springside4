@@ -1,6 +1,6 @@
 @echo off
 echo [INFO] Use maven jetty-plugin run the project.
-
+call d:\env.bat
 cd %~dp0
 cd ..
 
