@@ -1,3 +1,8 @@
+/*******************************************************************************
+ * Copyright (c) 2005, 2014 springside.github.io
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ *******************************************************************************/
 package org.springside.examples.showcase.demos.redis.job.dispatcher;
 
 import java.util.concurrent.Executors;
@@ -5,18 +10,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.springside.examples.showcase.demos.redis.JedisPoolFactory;
-import org.springside.modules.nosql.redis.JedisUtils;
-import org.springside.modules.nosql.redis.scheduler.JobDispatcher;
-import org.springside.modules.nosql.redis.scheduler.JobStatistics;
-
-import redis.clients.jedis.JedisPool;
+import org.springside.modules.nosql.redis.pool.JedisPool;
+import org.springside.modules.nosql.redis.pool.JedisPoolBuilder;
+import org.springside.modules.nosql.redis.service.scheduler.JobDispatcher;
+import org.springside.modules.nosql.redis.service.scheduler.JobStatistics;
 
 /**
  * 运行JobDispatcher，每秒将Job从"job:ss:scheduled" sorted set 发布到"job:ss:ready" list.
  * 如果有任务已被领取而长期没有被执行，会从"job:ss:locked" sorted set取回并重新发布到"job:ss:ready" list.
- * 
- * 可用系统参数重置相关变量，@see RedisCounterBenchmark
  * 
  * @author calvin
  */
@@ -28,8 +29,7 @@ public class ReliableJobDispatcherDemo {
 
 	public static void main(String[] args) throws Exception {
 
-		JedisPool pool = JedisPoolFactory.createJedisPool(JedisUtils.DEFAULT_HOST, JedisUtils.DEFAULT_PORT,
-				JedisUtils.DEFAULT_TIMEOUT, 1);
+		JedisPool pool = new JedisPoolBuilder().setUrl("direct://localhost:6379?poolSize=1").buildPool();
 		try {
 			JobDispatcher dispatcher = new JobDispatcher("ss", pool);
 			dispatcher.setReliable(true);
@@ -60,7 +60,7 @@ public class ReliableJobDispatcherDemo {
 			@Override
 			public void run() {
 				System.out.printf(
-						"Scheduled job %d, Ready Job %d, Lock Job %d, Dispatch Counter %d, Retry Counter %d \n",
+						"Scheduled job %d, Ready Job %d, Lock Job %d, Dispatch Counter %d, Retry Counter %d %n",
 						statistics.getScheduledJobNumber(), statistics.getReadyJobNumber(),
 						statistics.getLockJobNumber(), statistics.getDispatchCounter(), statistics.getRetryCounter());
 			}

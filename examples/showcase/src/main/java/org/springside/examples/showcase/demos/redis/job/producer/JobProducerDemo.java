@@ -1,27 +1,30 @@
+/*******************************************************************************
+ * Copyright (c) 2005, 2014 springside.github.io
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ *******************************************************************************/
 package org.springside.examples.showcase.demos.redis.job.producer;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.springside.examples.showcase.demos.redis.JedisPoolFactory;
 import org.springside.examples.showcase.demos.redis.job.dispatcher.SimpleJobDispatcherDemo;
-import org.springside.modules.nosql.redis.JedisUtils;
-import org.springside.modules.nosql.redis.scheduler.JobProducer;
+import org.springside.modules.nosql.redis.pool.JedisPool;
+import org.springside.modules.nosql.redis.pool.JedisPoolBuilder;
+import org.springside.modules.nosql.redis.service.scheduler.JobProducer;
 import org.springside.modules.test.benchmark.BenchmarkTask;
 import org.springside.modules.test.benchmark.ConcurrentBenchmark;
 
-import redis.clients.jedis.JedisPool;
-
 /**
- * 运行JobManager产生新的Job。
+ * 运行JobProducer产生新的Job。
  * 
- * 可用系统参数重置相关变量，@see RedisCounterBenchmark
+ * 可用系统参数重置测试规模，@see RedisCounterBenchmark
  * 
  * @author calvin
  */
 public class JobProducerDemo extends ConcurrentBenchmark {
 	private static final int DEFAULT_THREAD_COUNT = 5;
-	private static final long DEFAULT_LOOP_COUNT = 100000;
+	private static final long DEFAULT_TOTAL_COUNT = 500000;
 
 	private static AtomicLong expiredMills = new AtomicLong(System.currentTimeMillis()
 			+ (SimpleJobDispatcherDemo.DELAY_SECONDS * 1000));
@@ -37,15 +40,14 @@ public class JobProducerDemo extends ConcurrentBenchmark {
 	}
 
 	public JobProducerDemo() {
-		super(DEFAULT_THREAD_COUNT, DEFAULT_LOOP_COUNT);
+		super(DEFAULT_THREAD_COUNT, DEFAULT_TOTAL_COUNT);
 		this.expectTps = Long.parseLong(System.getProperty("benchmark.tps",
 				String.valueOf(SimpleJobDispatcherDemo.EXPECT_TPS)));
 	}
 
 	@Override
 	protected void setUp() {
-		pool = JedisPoolFactory.createJedisPool(JedisUtils.DEFAULT_HOST, JedisUtils.DEFAULT_PORT,
-				JedisUtils.DEFAULT_TIMEOUT, threadCount);
+		pool = new JedisPoolBuilder().setUrl("direct://localhost:6379?poolSize=" + threadCount).buildPool();
 		jobProducer = new JobProducer("ss", pool);
 	}
 
@@ -63,8 +65,8 @@ public class JobProducerDemo extends ConcurrentBenchmark {
 		@Override
 		public void execute(final int requestSequence) {
 			long jobId = idGenerator.getAndIncrement();
-			jobProducer.schedule("job:" + jobId, expiredMills.get() - System.currentTimeMillis(),
-					TimeUnit.MILLISECONDS);
+			jobProducer
+					.schedule("job:" + jobId, expiredMills.get() - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 
 			// 达到期望的每秒的TPS后，expireTime往后滚动一秒
 			if ((jobId % (expectTps)) == 0) {

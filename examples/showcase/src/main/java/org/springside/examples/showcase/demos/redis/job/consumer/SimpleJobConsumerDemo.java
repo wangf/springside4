@@ -1,3 +1,8 @@
+/*******************************************************************************
+ * Copyright (c) 2005, 2014 springside.github.io
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ *******************************************************************************/
 package org.springside.examples.showcase.demos.redis.job.consumer;
 
 import java.util.concurrent.ExecutorService;
@@ -5,19 +10,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.springside.examples.showcase.demos.redis.JedisPoolFactory;
-import org.springside.modules.nosql.redis.JedisUtils;
-import org.springside.modules.nosql.redis.scheduler.SimpleJobConsumer;
+import org.springside.modules.nosql.redis.pool.JedisPool;
+import org.springside.modules.nosql.redis.pool.JedisPoolBuilder;
+import org.springside.modules.nosql.redis.service.scheduler.SimpleJobConsumer;
 import org.springside.modules.test.benchmark.ConcurrentBenchmark;
-
-import redis.clients.jedis.JedisPool;
 
 import com.google.common.util.concurrent.RateLimiter;
 
 /**
  * 多线程运行JobConsumer，从"ss.job:ready" list中popup job进行处理。
  * 
- * 可用系统参数重置变量改变线程数，@see RedisCounterBenchmark
+ * 可用系统参数-Dthread.count 改变线程数
  * 
  * @author calvin
  */
@@ -33,19 +36,18 @@ public class SimpleJobConsumerDemo implements Runnable {
 	protected static AtomicLong golbalPreviousCount = new AtomicLong(0);
 	protected static RateLimiter golbalPrintRate = RateLimiter.create(1d / PRINT_BETWEEN_SECONDS);
 
-	private SimpleJobConsumer consumer;
-
 	protected long localCounter = 0L;
 	protected long localPreviousCount = 0L;
 	protected RateLimiter localPrintRate = RateLimiter.create(1d / PRINT_BETWEEN_SECONDS);
+
+	private SimpleJobConsumer consumer;
 
 	public static void main(String[] args) throws Exception {
 
 		threadCount = Integer.parseInt(System.getProperty(ConcurrentBenchmark.THREAD_COUNT_NAME,
 				String.valueOf(THREAD_COUNT)));
 
-		pool = JedisPoolFactory.createJedisPool(JedisUtils.DEFAULT_HOST, JedisUtils.DEFAULT_PORT,
-				JedisUtils.DEFAULT_TIMEOUT, threadCount);
+		pool = new JedisPoolBuilder().setUrl("direct://localhost:6379?poolSize=" + threadCount).buildPool();
 
 		ExecutorService threadPool = Executors.newFixedThreadPool(threadCount);
 		for (int i = 0; i < threadCount; i++) {
@@ -88,7 +90,7 @@ public class SimpleJobConsumerDemo implements Runnable {
 				if (job != null) {
 					handleJob(job);
 				}
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				e.printStackTrace();
 			}
 		}
@@ -104,14 +106,14 @@ public class SimpleJobConsumerDemo implements Runnable {
 
 		// print global progress, 所有線程裡只有一個会在10秒內打印一次。
 		if (golbalPrintRate.tryAcquire()) {
-			System.out.printf("Total pop %,d jobs, tps is %,d\n", globalCount,
+			System.out.printf("Total pop %,d jobs, tps is %,d%n", globalCount,
 					(globalCount - golbalPreviousCount.get()) / PRINT_BETWEEN_SECONDS);
 			golbalPreviousCount.set(globalCount);
 		}
 
 		// print current thread progress，10秒內打印一次。
 		if (localPrintRate.tryAcquire()) {
-			System.out.printf("Local thread pop %,d jobs, tps is %,d\n", localCounter,
+			System.out.printf("Local thread pop %,d jobs, tps is %,d%n", localCounter,
 					(localCounter - localPreviousCount) / PRINT_BETWEEN_SECONDS);
 			localPreviousCount = localCounter;
 		}
